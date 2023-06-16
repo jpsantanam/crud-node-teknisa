@@ -29,7 +29,7 @@ app.post('/createProgrammer', async (req, res) => {
 
         const properties = ['name', 'javascript', 'java', 'python'];
 
-        validadeProperties(properties, params, 'every');
+        validateProperties(properties, params, 'every');
 
         const newProgrammer = await programmer.create({
             name: params.name,
@@ -38,8 +38,27 @@ app.post('/createProgrammer', async (req, res) => {
             python: params.python,
         });
 
-        res.send(newProgrammer);
+        res.status(201).send(newProgrammer);
 
+    } catch (err) {
+        res.send(err);
+    }
+});
+
+app.get('/retrieveProgrammer/:id', async (req, res) => {
+    try {
+        const params = req.params;
+        if ('id' in params) {
+            const record = await programmer.findByPk(params.id);
+            if (record) {
+                res.status(200).send(record);
+            } else {
+                res.status(404).send('No programmer found using received ID');
+            }
+            return;
+        }
+        const records = await programmer.findAll();
+        res.status(200).send(records);
     } catch (err) {
         res.send(err);
     }
@@ -47,18 +66,8 @@ app.post('/createProgrammer', async (req, res) => {
 
 app.get('/retrieveProgrammer', async (req, res) => {
     try {
-        const params = req.body;
-        if ('id' in params) {
-            const record = await programmer.findByPk(params.id);
-            if (record) {
-                res.send(record);
-            } else {
-                res.send('No programmer found using received ID');
-            }
-            return;
-        }
         const records = await programmer.findAll();
-        res.send(records);
+        res.status(200).send(records);
     } catch (err) {
         res.send(err);
     }
@@ -72,7 +81,7 @@ app.put('/updateProgrammer', async (req, res) => {
 
         const properties = ['name', 'javascript', 'java', 'python'];
 
-        validadeProperties(properties, params, 'some');
+        validateProperties(properties, params, 'some');
 
         record.name = params.name || record.name;
         record.python = params.python || record.python;
@@ -81,7 +90,7 @@ app.put('/updateProgrammer', async (req, res) => {
 
         await record.save();
 
-        res.send(`${record.id} ${record.name} - Updated successfully`);
+        res.status(200).send(`${record.id} ${record.name} - Updated successfully`);
     } catch (err) {
         res.send(err);
     }
@@ -95,7 +104,7 @@ app.delete('/deleteProgrammer', async (req, res) => {
 
         await record.destroy();
 
-        res.send(`${record.id} ${record.name} - Deleted successfully`);
+        res.status(200).send(`${record.id} ${record.name} - Deleted successfully`);
     } catch (err) {
         res.send(err);
     }
@@ -105,7 +114,7 @@ app.listen(port, () => {
     console.log(`Now listening on port ${port}`);
 });
 
-const validadeProperties = async (properties, params, fn) => {
+const validateProperties = (properties, params, fn) => {
     try {
         const check = properties[fn]((property) => {
             return property in params;
