@@ -4,7 +4,7 @@ const database = require('../db');
 const programmer = database.define('programmer', {
     id: {
         type: sequelize.INTEGER,
-        autoincrement: true,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
