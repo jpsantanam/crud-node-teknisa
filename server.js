@@ -41,26 +41,26 @@ app.post('/createProgrammer', async (req, res) => {
         res.status(201).send(newProgrammer);
 
     } catch (err) {
-        res.send(err);
+        if (err == "Request body doesn't have the expected properties") {
+            res.status(400).send(err);
+            return;
+        }
+        res.status(500).send(err);
     }
 });
 
 app.get('/retrieveProgrammer/:id', async (req, res) => {
     try {
         const params = req.params;
-        if ('id' in params) {
-            const record = await programmer.findByPk(params.id);
-            if (record) {
-                res.status(200).send(record);
-            } else {
-                res.status(404).send('No programmer found using received ID');
-            }
-            return;
+
+        const record = await programmer.findByPk(params.id);
+        if (record) {
+            res.status(200).send(record);
+        } else {
+            res.status(404).send('No programmer found using received ID');
         }
-        const records = await programmer.findAll();
-        res.status(200).send(records);
     } catch (err) {
-        res.send(err);
+        res.status(500).send(err);
     }
 });
 
@@ -69,7 +69,7 @@ app.get('/retrieveProgrammer', async (req, res) => {
         const records = await programmer.findAll();
         res.status(200).send(records);
     } catch (err) {
-        res.send(err);
+        res.status(500).send(err);
     }
 });
 
@@ -106,7 +106,15 @@ app.delete('/deleteProgrammer', async (req, res) => {
 
         res.status(200).send(`${record.id} ${record.name} - Deleted successfully`);
     } catch (err) {
-        res.send(err);
+        if (err == "Missing 'id' in request body") {
+            res.status(400).send(err);
+            return;
+        }
+        if (err == 'Programmer ID not found') {
+            res.status(404).send(err);
+            return;
+        }
+        res.status(500).send(err);
     }
 });
 
@@ -115,31 +123,27 @@ app.listen(port, () => {
 });
 
 const validateProperties = (properties, params, fn) => {
-    try {
-        const check = properties[fn]((property) => {
-            return property in params;
-        });
-        if (!check) {
-            const propStr = properties.join(', ');
-            throw `Request body doesn't have any of the following properties: ${propStr}`;
-        }
-        return true;
-    } catch (err) {
-        throw err;
+
+    const checkProperty = properties[fn]((property) => {
+        return property in params;
+    });
+    const checkParam = Object.keys(params)[fn]((param) => {
+        return param in properties;
+    });
+    if (!(checkProperty && checkParam)) {
+        throw "Request body doesn't have the expected properties";
     }
+
+    return true;
 };
 
 const validateID = async (params) => {
-    try {
-        if (!('id') in params) {
-            throw `Missing 'id' in request body`;
-        }
-        const record = await programmer.findByPk(params.id);
-        if (!record) {
-            throw `Programmer ID not found.`;
-        }
-        return record;
-    } catch (err) {
-        throw err;
+    if (!('id' in params)) {
+        throw "Missing 'id' in request body";
     }
+    const record = await programmer.findByPk(params.id);
+    if (!record) {
+        throw 'Programmer ID not found';
+    }
+    return record;
 };
