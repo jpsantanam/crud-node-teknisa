@@ -27,9 +27,7 @@ app.post('/createProgrammer', async (req, res) => {
     try {
         const params = req.body;
 
-        const properties = ['name', 'javascript', 'java', 'python'];
-
-        validateProperties(properties, params, 'every');
+        validateProperties(params, 'every');
 
         const newProgrammer = await programmer.create({
             name: params.name,
@@ -81,18 +79,23 @@ app.put('/updateProgrammer', async (req, res) => {
 
         const properties = ['name', 'javascript', 'java', 'python'];
 
-        validateProperties(properties, params, 'some');
+        validateProperties(params, 'some');
 
-        record.name = params.name || record.name;
-        record.python = params.python || record.python;
-        record.java = params.java || record.java;
-        record.javascript = params.javascript || record.javascript;
+        for (property of properties) {
+            if (params[property] != undefined) {
+                record[property] = params[property]
+            }
+        }
 
         await record.save();
 
         res.status(200).send(`${record.id} ${record.name} - Updated successfully`);
     } catch (err) {
-        res.send(err);
+        if (err == "Request body doesn't have the expected properties") {
+            res.status(400).send(err);
+            return;
+        }
+        res.status(500).send(err);
     }
 });
 
@@ -118,18 +121,41 @@ app.delete('/deleteProgrammer', async (req, res) => {
     }
 });
 
+app.delete('/deleteProgrammer/:id', async (req, res) => {
+    try {
+        const params = req.params;
+
+        const record = await validateID(params);
+
+        await record.destroy();
+
+        res.status(200).send(`${record.id} ${record.name} - Deleted successfully`);
+    } catch (err) {
+        if (err == 'Programmer ID not found') {
+            res.status(404).send(err);
+            return;
+        }
+        res.status(500).send(err);
+    }
+});
+
 app.listen(port, () => {
     console.log(`Now listening on port ${port}`);
 });
 
-const validateProperties = (properties, params, fn) => {
+const validateProperties = (params, fn) => {
+    const properties = ['name', 'javascript', 'java', 'python'];
 
     const checkProperty = properties[fn]((property) => {
+        console.log(property)
         return property in params;
     });
+
     const checkParam = Object.keys(params)[fn]((param) => {
-        return param in properties;
+        console.log(param)
+        return properties.includes(param);
     });
+
     if (!(checkProperty && checkParam)) {
         throw "Request body doesn't have the expected properties";
     }
