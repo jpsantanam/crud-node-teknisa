@@ -4,11 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Node JS</title>
+    <title>CRUD Node JS</title>
 </head>
 
 <body>
-    <h1>Hello World</h1>
+    <h1>CRUD desenvolvido com Node.js</h1>
+    <h2>Endpoints</h2>
+    <ul>
+        <li>SYNC DATABASE: /database <br>curl --location 'http://localhost:5000/database'</li>
+        <li>CREATE: /programmer <br>curl --location 'http://localhost:5000/programmer' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "name": "João Pedro Santana Marques",
+            "javascript": true,
+            "java": true,
+            "python": true
+            }'</li>
+        <li>READ: /programmer <br>curl --location --request GET 'http://localhost:5000/programmer/' \
+            --header 'Content-Type: text/plain' \
+            --data '{
+            "id": 1;
+            }'</li>
+        <li>READ: /programmer/id <br>curl --location 'http://localhost:5000/programmer/1' \
+            --data ''</li>
+        <li>UPDATE: PUT /programmer <br>curl --location --request PUT 'http://localhost:5000/programmer' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "id": 1,
+            "name": "João Pedro"
+            }'</li>
+        <li>DELETE: /programmer <br>curl --location --request DELETE 'http://localhost:5000/programmer/' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "id": 1
+            }'</li>
+        <li>DELETE: /programmer/id <br>curl --location --request DELETE 'http://localhost:5000/programmer/1' \
+            --data ''</li>
+    </ul>
 </body>
 
 </html>
